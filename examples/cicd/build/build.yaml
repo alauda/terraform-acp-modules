@@ -1,0 +1,88 @@
+apiVersion: builds.katanomi.dev/v1alpha1
+kind: Build
+spec:
+  workspaces:
+    - description: |
+        This workspace is shared among all the pipeline tasks to read/write common resources
+      name: source
+  tasks:
+    - name: build
+      timeout: 30m
+      retries: 0
+      taskRef:
+        resolver: katanomi.hub
+        params:
+          - name: kind
+            value: task
+          - name: name
+            value: go-build
+      workspaces:
+        - name: source
+          workspace: source
+        - name: cache
+      when: []
+      params:
+        - name: command
+          value: |
+            cd build/go-httpserver ;
+            set -ex;
+            ls -artl;
+            CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-w -s -extldflags=-static -X main.currentVersion=$(build.git.lastCommit.shortID)' -o ./bin/httpserver ./main.go
+            cd -;
+        - name: build-outputs-path
+          value:
+            - ./build/go-httpserver/bin/httpserver
+    - name: chart
+      timeout: 30m
+      retries: 0
+      taskRef:
+        resolver: katanomi.hub
+        params:
+          - name: kind
+            value: task
+          - name: name
+            value: chart-build
+      workspaces:
+        - name: source
+          workspace: source
+      when: []
+      runAfter:
+        - image
+      params:
+        - name: helm-images
+          value:
+            - testtoolchain-harbor.alauda.cn/devops/nginx-chart:$(build.git.lastCommit.shortID)
+        - name: dir
+          value: ./build/nginx-chart
+        - name: values
+          value:
+            - image.uri=$(tasks.image.results.ociContainerImageBuild-url)
+    - name: image
+      timeout: 30m
+      retries: 0
+      runAfter:
+        - build
+      taskRef:
+        resolver: katanomi.hub
+        params:
+          - name: kind
+            value: task
+          - name: name
+            value: build-image-buildkit
+      workspaces:
+        - name: source
+          workspace: source
+        - name: cache
+        - name: config
+      when: []
+      params:
+        - name: container-images
+          value:
+            - testtoolchain-harbor.alauda.cn/devops/nginx:$(build.git.lastCommit.shortID)
+        - name: dockerfile
+          value: ./build/Dockerfile
+        - name: context
+          value: ./
+  runTemplate:
+    spec:
+      taskRunSpecs: []
