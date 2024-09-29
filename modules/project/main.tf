@@ -29,7 +29,7 @@ EOT
  }
 
 resource "kubectl_manifest" "project" {
-  provider = acp.cluster
+  provider = global
   yaml_body = <<EOT
 apiVersion: auth.alauda.io/v1
 kind: Project

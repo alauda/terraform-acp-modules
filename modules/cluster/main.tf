@@ -71,7 +71,7 @@ EOT
 }
 
 resource "kubectl_manifest" "cluster" {
-  provider = acp.cluster
+  provider = global
   sensitive_fields = [ "spec.machines" ]
   ignore_fields = [ "spec.machines" ]
   yaml_body = <<EOT

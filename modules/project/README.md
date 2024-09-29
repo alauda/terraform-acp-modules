@@ -14,7 +14,7 @@ Create an project and bind it to global cluster with quotas
 module "my_test_project" {
   source = "./modules/project"
   providers = {
-    acp.cluster = acp.global
+    global = acp.global
   }
 
   project_name = "test-project"

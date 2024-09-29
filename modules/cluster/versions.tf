@@ -1,9 +1,8 @@
 terraform {
   required_providers {
-    acp = {
+    global = {
       source  = "alekc/kubectl"
       version = "~> 2.0"
-      configuration_aliases = [ acp.cluster ]
     }
   }
 }

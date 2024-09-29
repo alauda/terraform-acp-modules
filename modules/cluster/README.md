@@ -15,21 +15,30 @@ Create an self-hosted cluster with default options
 module "my_test_cluster" {
   source = "./modules/cluster"
   providers = {
-    acp.cluster = acp.global
+    global = acp.global
   }
   cluster_name = "test-cluster"
   ha_vip = "192.168.0.1"
   machines = [
     {
       ip = "192.168.100.1"
+      port = 22
+      role = "master"
+      username = "root"
       password = "<Your-Password>"
     },
     {
       ip = "192.168.100.2"
+      port = 22
+      role = "master"
+      username = "root"
       password = ""<Your-Password>"
     },
     {
       ip = "192.168.100.3"
+      port = 22
+      role = "master"
+      username = "root"
       password = ""<Your-Password>"
     },
   ]
