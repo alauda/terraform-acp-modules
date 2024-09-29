@@ -13,27 +13,13 @@ module "alb" {
   project = "custom"
 }
 ```
+
 ## Requirements
 
-| Name | Version |
-|------|---------|
-| <a name="requirement_acp"></a> [acp](#requirement\_acp) | >=1.7.0 |
-
-## Providers
-
-| Name | Version |
-|------|---------|
-| <a name="provider_acp"></a> [acp](#provider\_acp) | >=1.7.0 |
-
-## Modules
-
-No modules.
-
-## Resources
-
-| Name | Type |
-|------|------|
-| [acp_kubectl_manifest.build](https://registry.terraform.io/providers/gavinbunney/kubectl/latest/docs/resources/kubectl_manifest) | resource |
+| Name          | Version  |
+| ------------- | -------- |
+| Terraform     | >= 1.3.0 |
+| alekc/kubectl | >= 2.0   |
 
 ## Inputs
 
@@ -48,7 +34,3 @@ No modules.
 | <a name="input_node_selector"></a> [node\_selector](#input\_node\_selector) | the node selector lable for where to deploy this alb | `map(string)` | <pre>{<br/>  "kubernetes.io/os": "linux"<br/>}</pre> | no |
 | <a name="input_project"></a> [project](#input\_project) | The project of this alb | `string` | `"ALL_ALL"` | no |
 | <a name="input_replicias"></a> [replicias](#input\_replicias) | The number of replicas for this alb | `number` | `1` | no |
-
-## Outputs
-
-No outputs.
