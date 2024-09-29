@@ -46,12 +46,17 @@ spec:
         - name: source
           workspace: source
       when: []
+      runAfter:
+        - image
       params:
         - name: helm-images
           value:
             - testtoolchain-harbor.alauda.cn/devops/nginx-chart:$(build.git.lastCommit.shortID)
         - name: dir
           value: ./build/nginx-chart
+        - name: values
+          value:
+            - image.uri=$(tasks.image.results.ociContainerImageBuild-url)
     - name: image
       timeout: 30m
       retries: 0

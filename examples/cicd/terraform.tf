@@ -297,111 +297,34 @@ module "create_build" {
 locals {
   delivery_book_info = {
     name = "book-info"
-    project = "devops"
-    params = <<YAML
-- artifact:
-    annotations:
-      alias: ""
-      core.katanomi.dev/artifactMode: select
-      integrations.katanomi.dev/icon: ""
-      integrations.katanomi.dev/integration: ${local.harbor_integration.name}
-      integrations.katanomi.dev/project: ${local.project_name}
-      integrations.katanomi.dev/repository: nginx-chart
-      resource: artifactRepository
-    integrationClassName: harbor
-    secretRef:
-      name: ${local.harbor_integration.secret_name}
-      namespace: ${local.project_name}
-    type: OCIHelmChart
-    uri: testtoolchain-harbor.alauda.cn/devops/nginx-chart
-  default: latest
-  name: chart
-  type: string
-- artifact:
-    annotations:
-      alias: ""
-      core.katanomi.dev/artifactMode: select
-      integrations.katanomi.dev/icon: ""
-      integrations.katanomi.dev/integration: ${local.harbor_integration.name}
-      integrations.katanomi.dev/project: ${local.project_name}
-      integrations.katanomi.dev/repository: nginx
-      resource: artifactRepository
-    integrationClassName: harbor
-    secretRef:
-      name: ${local.harbor_integration.secret_name}
-      namespace: ${local.project_name}
-    type: OCIContainerImage
-    uri: testtoolchain-harbor.alauda.cn/devops/nginx
-  default: latest
-  name: nginx
-  type: string
-- default: nginx
-  name: app-name
-  type: string
-YAML
-
-  stages = <<YAML
-- context:
-    environmentSpec:
-      clusterRef:
-        apiVersion: clusterregistry.k8s.io/v1alpha1
-        kind: Cluster
-        name: ${local.project_namespace_cluster}
-        namespace: cpaas-system
-      namespaceRef:
-        name: ${local.project_namespace_name}
-  name: app-name
-  params:
-  - name: artifact
-    value: $(params.chart)
-  - name: helm-app
-    value: $(params.app-name)
-  - name: helm-values
-    value: '{"image":{"uri":"$(params.nginx.uri):$(params.chart.tag)"}}'
-  stageRef:
-    kind: ClusterStage
-    name: helm-app-update
-  timeout: 0s
-YAML
-
-  triggers = <<YAML
-artifactTriggers:
-- name: chart
-  paramName: chart
-  params:
-  - name: nginx
-    value: ""
-  - name: app-name
-    value: nginx
-  spec:
-    artifact: {}
-    filter:
-      push:
-        enable: true
-        tag:
-          regex: ^.*$
-- name: nginx
-  paramName: nginx
-  params:
-  - name: chart
-    value: ""
-  - name: app-name
-    value: nginx
-  spec:
-    artifact: {}
-    filter:
-      push:
-        enable: true
-        tag:
-          regex: ^.*$
-YAML
+    project = local.project_name
+    integration_name = local.harbor_integration.name
+    params = {
+      app_name = "nginx"
+      chart = {
+        uri = "testtoolchain-harbor.alauda.cn/devops/nginx-chart"
+        project = "devops"
+        repository = "nginx-chart"
+        secret = {
+          name = local.harbor_integration.secret_name
+          namespace = local.project_name
+        }
+      }
+    }
+    stage = {
+      cluster = local.project_namespace_cluster
+      namespace = local.project_namespace_name
+    }
+    triggers = {
+      regex = "^.*$"
+    }
   }
 
   deliverys = [ local.delivery_book_info ]
 }
 
-module "create_delivery" {
-  source = "../../modules/delivery"
+module "create_chart_delivery" {
+  source = "../../modules/chartdelivery"
   providers = {
     acp = acp.global
   }
@@ -411,7 +334,8 @@ module "create_delivery" {
 
   delivery_name = each.value.name
   project_name = each.value.project
+  integration_name = each.value.integration_name
   params = each.value.params
-  stages = each.value.stages
+  stage = each.value.stage
   triggers = each.value.triggers
 }
