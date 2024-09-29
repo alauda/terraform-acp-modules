@@ -14,7 +14,7 @@ variable "acp_endpoint" {
 
 variable "acp_token" {
     type = string
-    default = "**************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************"
+    default = "********************"
 }
 
 provider acp {
@@ -32,6 +32,29 @@ provider acp {
   insecure = true
   token = var.acp_token
   apply_retry_count = 30
+}
+
+
+# Create a project in global cluster
+module "create-project" {
+  source = "../../modules/project"
+  providers = {
+    global = acp.global
+  }
+
+  project_name = local.project_name
+  clusters = [
+    {
+      name = "global"
+      quota = {
+      }
+    },
+    {
+      name = local.project_namespace_cluster
+      quota = {
+      }
+    }
+  ]
 }
 
 # Create a project name in `business-1` cluster, the namespace name is `devops-b`
@@ -62,121 +85,78 @@ spec:
 YAML
 }
 
-module "create-project" {
-  source = "../../modules/project"
+# Create a GitLab integration in `devops` project
+
+locals {
+  gitlab_integration = {
+    name = "gitlab"
+    url = "https://gitlab-ce.alauda.cn"
+    secret_name = "gitlab-ce"
+    username = "root"
+    access_token = "********************"
+    resources = [
+      {
+        name = "devops"
+      },
+      {
+        name = "idp/demo"
+        subResources = [
+          {
+            name = "bookinfo"
+          }
+        ]
+      }
+    ]
+  }
+}
+
+# Integrate the GitLab
+module "integration-gitlab" {
+  source = "../../modules/gitlabintegration"
   providers = {
     global = acp.global
   }
 
-  project_name = local.project_name
-  clusters = [
-    {
-      name = "global"
-      quota = {
-      }
-    },
-    {
-      name = local.project_namespace_cluster
-      quota = {
-      }
-    }
-  ]
+  project = local.project_name
+  integration_name = local.gitlab_integration.name
+  url = local.gitlab_integration.url
+  secret_name = local.gitlab_integration.secret_name
+  username = local.gitlab_integration.username
+  access_token = local.gitlab_integration.access_token
+  resources = local.gitlab_integration.resources
 }
 
-# Create a cluster integration for GitLab and Harbor
+# Create a Harbor integration in `devops` project
 
 locals {
-  gitlab_cluster_integration = {
-    integration_name = "gitlab"
-    integration_class_name = "gitlab"
-    category = "codeRepository"
-    display_name = "GitLab"
-    url = "https://gitlab-ce.alauda.cn"
-    secret_name = "gitlab-ce"
-    secret_username = "root"
-    secret_password = "********************"
-
-    replication_policies = <<YAML
-- disabled: false
-  namespaceFilter:
-    refs:
-      - name: "devops"
-  resources:
-    - name: "idp/demo"
-      properties:
-        name: "idp/demo"
-      readOnly: false
-      subResources:
-        - name: "bookinfo"
-          subtype: "CodeRepository"
-          type: "Repository"
-      subtype: "GitGroup"
-      syncPolicy: "SyncOnly"
-      type: "Project"
-  type: "Manual"
-- resources:
-    - name: "devops"
-      type: "Project"
-      subtype: "GitGroup"
-      readOnly: false
-  namespaceFilter:
-    refs:
-      - name: "devops"
-YAML
-  }
-
-  harbor_cluster_integration = {
-    integration_name = "harbor"
-    integration_class_name = "harbor"
-    category = "artifactRepository"
-    display_name = "Harbor Registry"
+  harbor_integration = {
+    name = "harbor"
     url = "http://testtoolchain-harbor.alauda.cn"
     secret_name = "harbor"
-    secret_username = "admin"
-    secret_password = "***********"
-
-    replication_policies = <<YAML
-- disabled: false
-  namespaceFilter:
-    refs:
-    - name: devops
-  resources:
-  - name: devops
-    properties:
-      name: devops
-    readOnly: false
-    subtype: ImageRegistry
-    syncPolicy: SyncOnly
-    type: Project
-  type: Manual
-YAML
-  }
-
-  cluster_integrations = {
-    gitlab = local.gitlab_cluster_integration
-    harbor = local.harbor_cluster_integration
+    username = "admin"
+    password = "***********"
+    resources = [
+      {
+        name = "devops"
+      }
+    ]
   }
 }
 
+# Integrate the Harbor
+module "integration-harbor" {
+  source = "../../modules/harborintegration"
+  providers = {
+    global = acp.global
+  }
 
-# Prepare the secret for cluster integration
-module "deploy_cluster_integration" {
-  source = "../../modules/clusterintegration"
-    providers = {
-      global = acp.global
-    }
-
-  for_each = local.cluster_integrations
-
-  integration_name = each.value.integration_name
-  category         = each.value.category
-  display_name     = each.value.display_name
-  url              = each.value.url
-  secret_name      = each.value.secret_name
-  secret_username  = each.value.secret_username
-  secret_password  = each.value.secret_password
-  integration_class_name = each.value.integration_class_name
-  replication_policies = each.value.replication_policies
+  project = local.project_name
+  integration_name = local.harbor_integration.name
+  url = local.harbor_integration.url
+  secret_name = local.harbor_integration.secret_name
+  username = local.harbor_integration.username
+  password = local.harbor_integration.password
+  resources = local.harbor_integration.resources
 }
 
 # Create a operator for CI & CD
@@ -263,11 +243,11 @@ resource "kubectl_manifest" "deploy-operators-instance" {
 locals {
   build_book_info = {
     build_name = "book-info"
-    namespace = "devops-b"
-    integration_name = "gitlab-iqw556"
+    namespace = local.project_namespace_name
+    integration_name = local.gitlab_integration.name
     git_project_name = "idp/demo"
     repo_url = "https://gitlab-ce.alauda.cn/idp/demo/bookinfo"
-    git_secret_name = "gitlab-ce"
+    git_secret_name = local.gitlab_integration.secret_name
     build_yaml_path = "build/build.yaml"
     triggers = <<YAML
 gitTrigger:
@@ -294,12 +274,12 @@ YAML
   builds = [local.build_book_info]
 }
 
-module "build" {
+module "create_build" {
   source = "../../modules/build"
   providers = {
     cluster = acp.business1
   }
-  depends_on = [ module.deploy_cluster_integration, kubectl_manifest.deploy-operators-instance ]
+  depends_on = [ module.integration-gitlab, module.integration-harbor, kubectl_manifest.deploy-operators-instance ]
 
   for_each = { for idx, val in local.builds : idx => val }
 
@@ -309,6 +289,7 @@ module "build" {
   project_name = each.value.git_project_name
   repo_url = each.value.repo_url
   git_secret_name = each.value.git_secret_name
+  git_secret_namespace = local.project_name
   build_yaml_path = each.value.build_yaml_path
   triggers = each.value.triggers
 }
@@ -323,14 +304,14 @@ locals {
       alias: ""
       core.katanomi.dev/artifactMode: select
       integrations.katanomi.dev/icon: ""
-      integrations.katanomi.dev/integration: harbor-iqw556
-      integrations.katanomi.dev/project: devops
+      integrations.katanomi.dev/integration: ${local.harbor_integration.name}
+      integrations.katanomi.dev/project: ${local.project_name}
       integrations.katanomi.dev/repository: nginx-chart
       resource: artifactRepository
     integrationClassName: harbor
     secretRef:
-      name: harbor
-      namespace: cpaas-system-global-credentials
+      name: ${local.harbor_integration.secret_name}
+      namespace: ${local.project_name}
     type: OCIHelmChart
     uri: testtoolchain-harbor.alauda.cn/devops/nginx-chart
   default: latest
@@ -341,14 +322,14 @@ locals {
       alias: ""
       core.katanomi.dev/artifactMode: select
       integrations.katanomi.dev/icon: ""
-      integrations.katanomi.dev/integration: harbor-iqw556
-      integrations.katanomi.dev/project: devops
+      integrations.katanomi.dev/integration: ${local.harbor_integration.name}
+      integrations.katanomi.dev/project: ${local.project_name}
       integrations.katanomi.dev/repository: nginx
       resource: artifactRepository
     integrationClassName: harbor
     secretRef:
-      name: harbor
-      namespace: cpaas-system-global-credentials
+      name: ${local.harbor_integration.secret_name}
+      namespace: ${local.project_name}
     type: OCIContainerImage
     uri: testtoolchain-harbor.alauda.cn/devops/nginx
   default: latest
@@ -365,10 +346,10 @@ YAML
       clusterRef:
         apiVersion: clusterregistry.k8s.io/v1alpha1
         kind: Cluster
-        name: business-1
+        name: ${local.project_namespace_cluster}
         namespace: cpaas-system
       namespaceRef:
-        name: devops-b
+        name: ${local.project_namespace_name}
   name: app-name
   params:
   - name: artifact
