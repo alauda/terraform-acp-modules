@@ -31,6 +31,7 @@ provider acp {
   load_config_file = false
   insecure = true
   token = var.acp_token
+  apply_retry_count = 30
 }
 
 # Create a project name in `business-1` cluster, the namespace name is `devops-b`
@@ -42,6 +43,7 @@ locals {
 
 resource "kubectl_manifest" "project_namespace" {
   provider = acp.business1
+  depends_on = [ module.create-project ]
 
   yaml_body = <<YAML
 apiVersion: v1
@@ -58,6 +60,27 @@ metadata:
 spec:
 
 YAML
+}
+
+module "create-project" {
+  source = "../../modules/project"
+  providers = {
+    global = acp.global
+  }
+
+  project_name = local.project_name
+  clusters = [
+    {
+      name = "global"
+      quota = {
+      }
+    },
+    {
+      name = local.project_namespace_cluster
+      quota = {
+      }
+    }
+  ]
 }
 
 # Create a cluster integration for GitLab and Harbor
@@ -156,6 +179,84 @@ module "deploy_cluster_integration" {
   replication_policies = each.value.replication_policies
 }
 
+# Create a operator for CI & CD
+locals {
+  tekton = {
+    name = "tekton-operator"
+    channel = "alpha"
+  }
+  katanomi = {
+    name = "katanomi-operator"
+    channel = "alpha"
+  }
+  operators = [local.tekton, local.katanomi]
+}
+
+module "deploy-operators" {
+  source = "../../modules/operator"
+  providers = {
+    cluster = acp.business1
+  }
+
+  for_each = { for idx, val in local.operators : idx => val }
+
+  operator_name = each.value.name
+  channel = each.value.channel
+}
+
+
+# Create a Katanomi and Tekton instance in `operators` namespace
+
+locals {
+  katanomi_instance = <<YAML
+apiVersion: operators.katanomi.dev/v1alpha1
+kind: Katanomi
+metadata:
+  name: katanomi-sample
+  namespace: operators
+spec:
+  externalURL: http://127.0.0.1:32001
+  replicas: 1
+  resources:
+    limits:
+      cpu: "2"
+      memory: 4Gi
+    requests:
+      cpu: "1"
+      memory: 2Gi
+  service:
+    ingress:
+      ingressClassName: ""
+      protocol: HTTP
+    nodePort:
+      apiPort:
+        httpPort: 32000
+      pluginPort:
+        httpPort: 32001
+    type: NodePort
+YAML
+
+  tekton_instance = <<YAML
+apiVersion: operator.tekton.dev/v1alpha1
+kind: TektonPipeline
+metadata:
+  name: pipeline
+spec:
+  targetNamespace: operators
+YAML
+
+  manifests = [local.katanomi_instance, local.tekton_instance]
+}
+
+resource "kubectl_manifest" "deploy-operators-instance" {
+  provider = acp.business1
+  depends_on = [ module.deploy-operators ]
+
+  for_each = toset(local.manifests)
+
+  yaml_body = each.value
+}
+
 
 # Create a build in `devops-b` namespace
 
@@ -198,6 +299,7 @@ module "build" {
   providers = {
     cluster = acp.business1
   }
+  depends_on = [ module.deploy_cluster_integration, kubectl_manifest.deploy-operators-instance ]
 
   for_each = { for idx, val in local.builds : idx => val }
 
@@ -322,6 +424,7 @@ module "create_delivery" {
   providers = {
     acp = acp.global
   }
+  depends_on = [ module.create-project ]
 
   for_each = { for idx, val in local.deliverys : idx => val }
 

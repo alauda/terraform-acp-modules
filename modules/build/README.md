@@ -53,6 +53,8 @@ gitTrigger:
 YAML
   }
 
+  for_each = { for idx, val in local.builds : idx => val }
+
   builds = [ local.build_book_info ]
 }
 
