@@ -1,4 +1,4 @@
-# The Terraform module for Alauda Container Platform Project
+# The `GitLabIntegration` module for Alauda Container Platform Project
 
 What capabilities does the current Module provide:
 

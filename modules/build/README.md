@@ -1,4 +1,4 @@
-# The Terraform module for Alauda Container Platform Project
+# The `Build` module for Alauda Container Platform Project
 
 What capabilities does the current Module provide:
 
@@ -38,8 +38,7 @@ locals {
     repo_url = "https://gitlab.xxx.cn/devops/bookinfo"
     build_yaml_path = ".build/build.yaml"
     git_project_name = "devops"
-    #
-    integration_name = "gitlab-iqw556"
+    integration_name = "gitlab"
     git_secret_name = "gitlab-secret"
     triggers = <<YAML
 gitTrigger:

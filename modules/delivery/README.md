@@ -1,4 +1,4 @@
-# The Terraform module for Alauda Container Platform Project
+# The `Delivery` module for Alauda Container Platform Project
 
 What capabilities does the current Module provide:
 

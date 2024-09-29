@@ -1,4 +1,4 @@
-# The Terraform module for Alauda Container Platform Project
+# The `ClusterIntegration` module for Alauda Container Platform
 
 What capabilities does the current Module provide:
 
