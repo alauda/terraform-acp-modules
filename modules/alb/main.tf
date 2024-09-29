@@ -1,5 +1,5 @@
 resource "kubectl_manifest" "build" {
-  provider = acp_cluster
+  provider = acp.cluster
   yaml_body = <<YAML
 apiVersion: crd.alauda.io/v2beta1
 kind: ALB2

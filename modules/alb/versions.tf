@@ -1,8 +1,8 @@
 terraform {
   required_providers {
-    acp_cluster = {
-        source = "gavinbunney/kubectl"
-        version = ">=1.7.0"
+    acp.cluster = {
+      source  = "alekc/kubectl"
+      version = "~> 2.0"
     }
   }
 }
