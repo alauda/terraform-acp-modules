@@ -1,4 +1,4 @@
-# The `ClusterIntegration` module for Alauda Container Platform
+# The ClusterIntegration module of ACP
 
 What capabilities does the current Module provide:
 

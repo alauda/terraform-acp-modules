@@ -1,4 +1,4 @@
-# The `Build` module for Alauda Container Platform Project
+# The Build module of ACP
 
 What capabilities does the current Module provide:
 

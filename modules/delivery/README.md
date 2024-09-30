@@ -1,4 +1,4 @@
-# The `Delivery` module for Alauda Container Platform Project
+# The Delivery module of ACP
 
 What capabilities does the current Module provide:
 

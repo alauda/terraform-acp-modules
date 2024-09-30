@@ -72,7 +72,6 @@ module "demo_project" {
   providers = {
     global = acp.global
   }
-  depends_on = [module.demo_namespace]
   
   project_name = "demo"
   clusters = [
@@ -94,6 +93,7 @@ module "example_namespace" {
   providers = {
     cluster = acp.business1
   }
+  depends_on = [module.demo_project]
   
   name = "example"
   project = "demo"
@@ -104,16 +104,17 @@ module "example_application" {
   providers = {
     cluster = acp.business1
   }
-  depends_on = [module.demo_namespace]
+  depends_on = [module.example_namespace]
   name       = "nginx"
   namespace  = "example"
 
   image = "nginx:1.27"
   ports = [
     {
-    port = 80
-    protocol = "TCP"
-  }]
+      port = 80
+      protocol = "TCP"
+    }
+  ]
   ingress = {
     load_balancer = "business1"
     domain = "example.com"

@@ -1,4 +1,4 @@
-# The Terraform module for ACP Cluster
+# The Cluster module of ACP
 
 What capabilities does the current Module provide:
 

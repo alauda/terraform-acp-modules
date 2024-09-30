@@ -1,4 +1,4 @@
-# The `HarborIntegration` module for Alauda Container Platform Project
+# The HarborIntegration module of ACP
 
 What capabilities does the current Module provide:
 

@@ -18,6 +18,14 @@ terraform {
   }
 }
 
+variable "acp_endpoint" {
+  type string
+}
+
+variable "acp_token" {
+  type string
+}
+
 provider acp {
   alias = "business1"
   host = format("%s/kubernetes/business1", trimsuffix(var.acp_endpoint, "/"))
@@ -43,9 +51,10 @@ module "example_application" {
   image = "nginx:1.27"
   ports = [
     {
-    port = 80
-    protocol = "TCP"
-  }]
+      port = 80
+      protocol = "TCP"
+    }
+  ]
   ingress = {
     load_balancer = "business1"
     domain = "example.com"
