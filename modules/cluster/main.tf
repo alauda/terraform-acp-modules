@@ -74,6 +74,16 @@ resource "kubectl_manifest" "cluster" {
   provider = global
   sensitive_fields = [ "spec.machines" ]
   ignore_fields = [ "spec.machines" ]
+  wait_for {
+    field {
+      key = "status.phase"
+      value = "Running"
+    }
+  }
+  timeouts {
+    create = "15m"
+  }
+
   yaml_body = <<EOT
 apiVersion: platform.tkestack.io/v1
 kind: Cluster

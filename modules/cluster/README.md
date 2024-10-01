@@ -57,17 +57,17 @@ module "my_test_cluster" {
 | Name | Type | Default | Required | Description |
 |------|-------------|------|---------|----------|
 | cluster_name | string |  | Y | Cluster name |
-| display_name | string | "" | N | Cluster display nameCluster display name |
+| display_name | string | "" | N | Cluster display name |
 | machines | list(object) |  | Y | Cluster machines |
-| machines[].role | string | master | Y | machine role, options: master, node |
-| machines[].display_name | string | "" | N | node display name |
-| machines[].ip | string |  | Y | machine IP, required, used for communication inside the cluster |
-| machines[].port | number | 22 | Y | machine SSH port |
-| machines[].network_device | string | "" | N | machine network device used for communication inside the cluster |
-| machines[].username | string | root | Y | machine SSH username |
-| machines[].password | string |  | N | machine SSH password, password or private_key must be defined |
-| machines[].private_key | string | | N | machine SSH private key, password or private_key must be defined |
-| machines[].pass_phrase | string |  | N | machine SSH private key pass phrase, optional, only used when private_key is defined  |
+| machines[].role | string | master | Y | Machine role, options: master, node |
+| machines[].display_name | string | "" | N | Node display name |
+| machines[].ip | string |  | Y | Machine IP, required, used for communication inside the cluster |
+| machines[].port | number | 22 | Y | Machine SSH port |
+| machines[].network_device | string | "" | N | Machine network device used for communication inside the cluster |
+| machines[].username | string | root | Y | Machine SSH username |
+| machines[].password | string |  | N | Machine SSH password, password or private_key must be defined |
+| machines[].private_key | string | | N | Machine SSH private key, password or private_key must be defined |
+| machines[].pass_phrase | string |  | N | Machine SSH private key pass phrase, optional, only used when private_key is defined  |
 | kubernetes_version | string | 1.28.13 | Y | Kubernetes version, options: 1.28.13, 1.27.16-1, 1.26.15-1, 1.25.16-2 |
 | cri | string | containerd://1.6.28-4 | Y | "CRI type and version, options: containerd://1.6.28-4, docker://20.10.27-4 |
 | pod_cidr | list(string) | ["10.3.0.0/16/"] | Y | CIDR for kubernetes pods |
