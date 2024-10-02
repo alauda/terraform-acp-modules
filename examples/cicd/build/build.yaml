@@ -51,7 +51,7 @@ spec:
       params:
         - name: helm-images
           value:
-            - testtoolchain-harbor.alauda.cn/devops/nginx-chart:$(build.git.lastCommit.shortID)
+            - harbor.xxx.cn/devops/nginx-chart:$(build.git.lastCommit.shortID)
         - name: dir
           value: ./build/nginx-chart
         - name: values
@@ -78,7 +78,7 @@ spec:
       params:
         - name: container-images
           value:
-            - testtoolchain-harbor.alauda.cn/devops/nginx:$(build.git.lastCommit.shortID)
+            - harbor.xxx.cn/devops/nginx:$(build.git.lastCommit.shortID)
         - name: dockerfile
           value: ./build/Dockerfile
         - name: context

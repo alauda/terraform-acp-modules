@@ -3,10 +3,10 @@
 ## Preparation
 
 * Prepare a GitLab repository and credentials
-  * Here is https://gitlab-ce.alauda.cn/idp/demo/bookinfo
+  * Here is https://gitlab.xxx.cn/idp/demo/bookinfo
   * Copy the `./build` directory to the root of this repository
 * Prepare a Harbor repository and credentials
-  * Here is http://testtoolchain-harbor.alauda.cn
+  * Here is http://harbor.xxx.cn
 * Prepare an ACP environment
   * Here is https://192.168.137.255
 * Set a default `StorageClass` in the `business-1` cluster.

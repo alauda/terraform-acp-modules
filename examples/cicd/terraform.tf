@@ -90,8 +90,8 @@ YAML
 locals {
   gitlab_integration = {
     name = "gitlab"
-    url = "https://gitlab-ce.alauda.cn"
-    secret_name = "gitlab-ce"
+    url = "https://gitlab.xxx.cn"
+    secret_name = "gitlab"
     username = "root"
     access_token = "********************"
     resources = [
@@ -131,7 +131,7 @@ module "integration-gitlab" {
 locals {
   harbor_integration = {
     name = "harbor"
-    url = "http://testtoolchain-harbor.alauda.cn"
+    url = "http://harbor.xxx.cn"
     secret_name = "harbor"
     username = "admin"
     password = "***********"
@@ -246,7 +246,7 @@ locals {
     namespace = local.project_namespace_name
     integration_name = local.gitlab_integration.name
     git_project_name = "idp/demo"
-    repo_url = "https://gitlab-ce.alauda.cn/idp/demo/bookinfo"
+    repo_url = "https://gitlab.xxx.cn/idp/demo/bookinfo"
     git_secret_name = local.gitlab_integration.secret_name
     build_yaml_path = "build/build.yaml"
     triggers = <<YAML
@@ -302,7 +302,7 @@ locals {
     params = {
       app_name = "nginx"
       chart = {
-        uri = "testtoolchain-harbor.alauda.cn/devops/nginx-chart"
+        uri = "harbor.xxx.cn/devops/nginx-chart"
         project = "devops"
         repository = "nginx-chart"
         secret = {
