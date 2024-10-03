@@ -81,7 +81,7 @@ resource "kubectl_manifest" "cluster" {
     }
   }
   timeouts {
-    create = "15m"
+    create = "30m"
   }
 
   yaml_body = <<EOT
